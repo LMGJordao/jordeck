@@ -6,12 +6,13 @@ __author__      = "Luís Jordão"
 __copyright__   = "Copyright 2021, 21stacks"
 __credits__     = ["Luís Jordão"]
 __license__     = "???"
-__version__     = "0.1.0"
+__version__     = "0.1.1"
 __email__       = "lmgjordao@gmail.com"
 __status__      = "Development"
 
 import random as rng
-import math
+from math import floor
+from itertools import chain, zip_longest
 
 class Card:
     def __init__(self, suit: str, value: str) -> None:
@@ -91,7 +92,7 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         self.__riffle()
         self.__cut(edges=20)
 
-    def __4_6_8_deck_shuffle(self):
+    def __4_6_8_deck_shuffle(self):             #TODO: reduce repeated code
         total_cards_in_deck = len(self.__cards)
         # Split in half -> Take +/- 1/4 of the deck from each stack and merge them
         left, right = self.__cards[:total_cards_in_deck // 2], self.__cards[total_cards_in_deck // 2:]  # splits the deck in two halves
@@ -101,21 +102,107 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         chunk_max_size = (total_cards_in_deck // 2) // 4        # max size of the chunks to be removed
         chunk_max_size_variation = chunk_max_size // 4          # max variation of the max size of those chunks
 
-        chunk_size = chunk_max_size - math.floor(rng.random() * chunk_max_size_variation)   # chunk size to take from left
+        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)   # chunk size to take from left
         left_chunk = left[left_offset - chunk_size : left_offset]                           # "remove" the chunk from left
+        left_offset -= chunk_size
+        print(f"{chunk_size} {len(left_chunk)}")
 
-        chunk_size = chunk_max_size - math.floor(rng.random() * chunk_max_size_variation)   # chunk size to take from right
+        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)   # chunk size to take from right
         right_chunk = right[right_offset - chunk_size : right_offset]                       # "remove" the chunk from right
+        right_offset -= chunk_size
+        print(f"{chunk_size} {len(right_chunk)}")
 
         left_chunk.extend(right_chunk)                          # put the right chunk on top of the left
         # Riffle -> Strip 4 -> Riffle
         working_deck = Deck(cards=left_chunk)                   # deck to shuffle
-        working_deck.show()
+        print(len(working_deck.__cards))
+        #working_deck.show()
         working_deck.__riffle()
+        print(len(working_deck.__cards))
         working_deck.__strip(4)
+        print(len(working_deck.__cards))
         working_deck.__riffle()
+
+        print(len(working_deck.__cards))
+        # repeating until all the cards are shuffled
+        while left_offset >= chunk_max_size and right_offset >= chunk_max_size:
+            # take one chunk from left stack
+            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            left_chunk = left[left_offset - chunk_size : left_offset]
+            left_offset -= chunk_size
+
+            # take one chunk from the working deck
+            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
+
+            left_chunk.extend(working_deck_chunk)
+            # Riffle -> Strip 4 -> Riffle
+            aux = Deck(cards=left_chunk)
+            aux.__riffle()
+            aux.__strip(4)
+            aux.__riffle()
+
+            # Place these cards on top of the working deck
+            working_deck.__cards[len(working_deck.__cards) - chunk_size:] = aux.__cards[:chunk_size]
+            working_deck.__cards.extend(aux.__cards[chunk_size:])
+
+            # take one chunk from right stack
+            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            right_chunk = right[right_offset - chunk_size : right_offset] 
+            right_offset -= chunk_size
+
+            # take one chunk from the working deck
+            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
+
+            right_chunk.extend(working_deck_chunk)
+            # Riffle -> Strip 4 -> Riffle
+            aux = Deck(cards=right_chunk)
+            aux.__riffle()
+            aux.__strip(4)
+            aux.__riffle()
+
+            # Place these cards on top of the working deck
+            working_deck.__cards[len(working_deck.__cards) - chunk_size:] = aux.__cards[:chunk_size]
+            working_deck.__cards.extend(aux.__cards[chunk_size:])
+        
+        # do the same for the last 2 chunks
+        left_chunk = left[:left_offset]                 # remainder of the left stack
+
+        # take one chunk from the working deck
+        chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+        working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
+
+        left_chunk.extend(working_deck_chunk)
+        # Riffle -> Strip 4 -> Riffle
+        aux = Deck(cards=left_chunk)
+        aux.__riffle()
+        aux.__strip(4)
+        aux.__riffle()
+
+        # Place these cards on top of the working deck
+        working_deck.__cards[len(working_deck.__cards) - chunk_size:] = aux.__cards[:chunk_size]
+        working_deck.__cards.extend(aux.__cards[chunk_size:])
+
+        right_chunk = right[:right_offset]              # remainder of the right stack
+
+        # take one chunk from the working deck
+        chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+        working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
+
+        right_chunk.extend(working_deck_chunk)
+        # Riffle -> Strip 4 -> Riffle
+        aux = Deck(cards=right_chunk)
+        aux.__riffle()
+        aux.__strip(4)
+        aux.__riffle()
+
+        # Place these cards on top of the working deck
+        working_deck.__cards[len(working_deck.__cards) - chunk_size:] = aux.__cards[:chunk_size]
+        working_deck.__cards.extend(aux.__cards[chunk_size:])
+
         print("\n\n")
-        working_deck.show()
+        #working_deck.show()
         pass
 
     def __strip(self, times: int = 2) -> None:
@@ -141,7 +228,7 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
 
         # Iterates until theres only a chunk of cards left
         while strip_offset >= strip_max_size:
-            strip_size = strip_max_size - math.floor(rng.random() * strip_max_size_variation)   # provides randomness
+            strip_size = strip_max_size - floor(rng.random() * strip_max_size_variation)   # provides randomness
             strip = self.__cards[strip_offset - strip_size : strip_offset]                      # picks a chunk of cards
             aux_deck.extend(strip)                                                              # adds the chunk to the top of the result
             strip_offset -= strip_size                                                          # iterates to the next chunk
@@ -153,6 +240,8 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         half = len(self.__cards) // 2                                               # magic number for half the deck
         left, right = self.__cards[:half], self.__cards[half:]                      # splits the deck in two halves
         self.__cards = [card for riffle in zip(left, right) for card in riffle]     # interleaves the cards from each half
+        if walrus := (len(left) - len(right)) != 0:                                 # in case they have different sizes
+            self.__cards.extend(left[-walrus:]) if walrus > 0 else self.__cards.extend(right[walrus:])
 
     def __box(self) -> None:
         third = len(self.__cards) // 3                              # magic number for a third of the deck                                      
