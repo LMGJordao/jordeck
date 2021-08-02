@@ -12,7 +12,6 @@ __status__      = "Development"
 
 import random as rng
 from math import floor
-from itertools import chain, zip_longest
 
 class Card:
     def __init__(self, suit: str, value: str) -> None:
@@ -102,37 +101,30 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         chunk_max_size = (total_cards_in_deck // 2) // 4        # max size of the chunks to be removed
         chunk_max_size_variation = chunk_max_size // 4          # max variation of the max size of those chunks
 
-        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)   # chunk size to take from left
+        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)        # chunk size to take from left
         left_chunk = left[left_offset - chunk_size : left_offset]                           # "remove" the chunk from left
         left_offset -= chunk_size
-        print(f"{chunk_size} {len(left_chunk)}")
 
-        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)   # chunk size to take from right
+        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)        # chunk size to take from right
         right_chunk = right[right_offset - chunk_size : right_offset]                       # "remove" the chunk from right
         right_offset -= chunk_size
-        print(f"{chunk_size} {len(right_chunk)}")
 
         left_chunk.extend(right_chunk)                          # put the right chunk on top of the left
         # Riffle -> Strip 4 -> Riffle
         working_deck = Deck(cards=left_chunk)                   # deck to shuffle
-        print(len(working_deck.__cards))
-        #working_deck.show()
         working_deck.__riffle()
-        print(len(working_deck.__cards))
         working_deck.__strip(4)
-        print(len(working_deck.__cards))
         working_deck.__riffle()
 
-        print(len(working_deck.__cards))
         # repeating until all the cards are shuffled
         while left_offset >= chunk_max_size and right_offset >= chunk_max_size:
             # take one chunk from left stack
-            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)
             left_chunk = left[left_offset - chunk_size : left_offset]
             left_offset -= chunk_size
 
             # take one chunk from the working deck
-            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)
             working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
 
             left_chunk.extend(working_deck_chunk)
@@ -147,12 +139,12 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
             working_deck.__cards.extend(aux.__cards[chunk_size:])
 
             # take one chunk from right stack
-            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)
             right_chunk = right[right_offset - chunk_size : right_offset] 
             right_offset -= chunk_size
 
             # take one chunk from the working deck
-            chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+            chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)
             working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
 
             right_chunk.extend(working_deck_chunk)
@@ -170,7 +162,7 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         left_chunk = left[:left_offset]                 # remainder of the left stack
 
         # take one chunk from the working deck
-        chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)
         working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
 
         left_chunk.extend(working_deck_chunk)
@@ -187,7 +179,7 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         right_chunk = right[:right_offset]              # remainder of the right stack
 
         # take one chunk from the working deck
-        chunk_size = chunk_max_size #- math.floor(rng.random() * chunk_max_size_variation)
+        chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)
         working_deck_chunk = working_deck.__cards[len(working_deck.__cards) - chunk_size:]
 
         right_chunk.extend(working_deck_chunk)
@@ -201,9 +193,37 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         working_deck.__cards[len(working_deck.__cards) - chunk_size:] = aux.__cards[:chunk_size]
         working_deck.__cards.extend(aux.__cards[chunk_size:])
 
-        print("\n\n")
-        #working_deck.show()
-        pass
+        # Split the deck in 2 equal parts
+        left, right = working_deck.__cards[:total_cards_in_deck // 2], working_deck.__cards[total_cards_in_deck // 2:]
+        left_offset = len(left)                                 # pointer for the top card in the left half
+        right_offset = len(right)                               # pointer for the top card in the right half
+
+        # Take 1/4 of a deck from each stack and riffle
+        self.__cards = []                   # to stack the shuffled cards
+        while left_offset >= chunk_max_size and right_offset >= chunk_max_size:
+            chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)        # chunk size to take from left
+            left_chunk = left[left_offset - chunk_size : left_offset]                           # "remove" the chunk from left
+            left_offset -= chunk_size
+
+            chunk_size = chunk_max_size - floor(rng.random() * chunk_max_size_variation)        # chunk size to take from right
+            right_chunk = right[right_offset - chunk_size : right_offset]                       # "remove" the chunk from right
+            right_offset -= chunk_size
+
+            left_chunk.extend(right_chunk)
+            aux = Deck(cards=left_chunk)
+            aux.__riffle()
+            aux.put_on_top_of(self)
+        
+        # Last quarter
+        left_chunk = left[:left_offset]
+        right_chunk = right[:right_offset]
+
+        left_chunk.extend(right_chunk)
+        aux = Deck(cards=left_chunk)
+        aux.__riffle()
+        aux.put_on_top_of(self)
+
+        self.__cut(edges=chunk_max_size)
 
     def __strip(self, times: int = 2) -> None:
         try:
@@ -300,5 +320,6 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
 
 
 if __name__ == "__main__":
-    deck = Deck(size=4)
+    deck = Deck(size=8)
     deck.shuffle()
+    deck.show()
