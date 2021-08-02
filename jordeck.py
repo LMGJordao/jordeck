@@ -6,7 +6,7 @@ __author__      = "Luís Jordão"
 __copyright__   = "Copyright 2021, 21stacks"
 __credits__     = ["Luís Jordão"]
 __license__     = "???"
-__version__     = "0.1.1"
+__version__     = "0.2.0"
 __email__       = "lmgjordao@gmail.com"
 __status__      = "Development"
 
