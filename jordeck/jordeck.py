@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """jordeck.py - Pythonic OOP card decks and shuffling"""
-#https://commonsclause.com/  ???
 
 __author__      = "Luís Jordão"
 __copyright__   = "Copyright 2021, 21stacks"
 __credits__     = ["Luís Jordão"]
-__license__     = "???"
+__license__     = "MIT License"
 __version__     = "1.0.0"
 __email__       = "lmgjordao@gmail.com"
 __status__      = "Release"
