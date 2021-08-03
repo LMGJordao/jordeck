@@ -6,7 +6,7 @@ __author__      = "Luís Jordão"
 __copyright__   = "Copyright 2021, 21stacks"
 __credits__     = ["Luís Jordão"]
 __license__     = "???"
-__version__     = "0.3.0"
+__version__     = "0.4.0"
 __email__       = "lmgjordao@gmail.com"
 __status__      = "Development"
 
@@ -50,6 +50,9 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
     
     def draw(self) -> Card:
         return self.__cards.pop()   # removes the top card of the deck
+
+    def deal(self, n) -> list:      # draws n cards from the top
+        return [self.draw() for _ in range(n)]
 
     def insert_top(self, card) -> None:
         self.__cards.append(card)
