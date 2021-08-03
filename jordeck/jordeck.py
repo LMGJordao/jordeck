@@ -6,22 +6,22 @@ __author__      = "Luís Jordão"
 __copyright__   = "Copyright 2021, 21stacks"
 __credits__     = ["Luís Jordão"]
 __license__     = "???"
-__version__     = "0.4.0"
+__version__     = "1.0.0"
 __email__       = "lmgjordao@gmail.com"
-__status__      = "Development"
+__status__      = "Release"
 
 import random as rng
 from math import floor
 
 class Card:
     def __init__(self, suit: str, value: str) -> None:
-            self.suit = str(suit)
-            self.value = str(value)
+        self.suit = str(suit)
+        self.value = str(value)
 
     def __str__(self) -> str:
         return f"{self.value} of {self.suit}"
 
-class Deck:     #TODO: Discard rack + burning card after shuffle
+class Deck:     
     def __init__(self, size: int = 1, cards: list = None) -> None:
         try:
             size = int(size)
@@ -33,10 +33,11 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
             raise ValueError("invalid size for Deck.__init__(): must be greater than 0")
 
         self.__deck_type = size
+        self.__discarded_cards = list()
+
         if cards is None:           # new deck
             self.__cards = list()
             self.__deck()
-            #self.wash()
         else:                       # deck from cards list
             self.__cards = cards
 
@@ -77,7 +78,6 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
             self.__4_6_8_deck_shuffle()
         else:
             self.wash()
-        #TODO: burn a card
 
     def __single_deck_shuffle(self):
         # Strip 4 -> Riffle -> Strip 4 -> Riffle -> Box -> Riffle -> Cut 10
@@ -318,17 +318,14 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
         top.extend(bottom)                                          # puts bottom on top
         self.__cards = top                                          # replaces de deck with the new one
 
+    def discard(self, list_of_cards) -> None:       # places a list of cards in the discarded pile
+        self.__discarded_cards.extend(list_of_cards)
+
+    def refill_deck(self) -> None:                  # places the discarded pile back in the deck
+        self.__cards.extend(self.__discarded_cards)
+
     def show(self) -> None:
         # Displays the deck in the terminal
         print(f"Deck size: {len(self.__cards)}")
-        #i = 0
         for card in self.__cards:
             print(card)
-            # print(str(card) + str(i))
-            #i+=1
-
-
-if __name__ == "__main__":
-    deck = Deck(size=8)
-    deck.shuffle()
-    deck.show()
