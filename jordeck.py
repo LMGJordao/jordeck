@@ -6,7 +6,7 @@ __author__      = "Luís Jordão"
 __copyright__   = "Copyright 2021, 21stacks"
 __credits__     = ["Luís Jordão"]
 __license__     = "???"
-__version__     = "0.2.0"
+__version__     = "0.3.0"
 __email__       = "lmgjordao@gmail.com"
 __status__      = "Development"
 
@@ -48,8 +48,14 @@ class Deck:     #TODO: Discard rack + burning card after shuffle
                 for value in ["2", "3", "4", "5", "6", "7", "8", "9", "10", "A", "K", "Q", "J"]:
                     self.__cards.append(Card(suit, value))      # creates a card and adds it to the top of the deck
     
-    def pop(self) -> Card:
+    def draw(self) -> Card:
         return self.__cards.pop()   # removes the top card of the deck
+
+    def insert_top(self, card) -> None:
+        self.__cards.append(card)
+
+    def insert_bottom(self, card) -> None:
+        self.__cards.insert(0, card)
 
     def put_on_top_of(self, target) -> None:
         target.__cards.extend(self.__cards)     # merges self with target, so that self is on top of the target
